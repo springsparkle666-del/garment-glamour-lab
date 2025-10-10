@@ -4,7 +4,7 @@ import heroImage from "@/assets/hero-fashion.jpg";
 
 const Hero = () => {
   return (
-    <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
+    <section className="relative min-h-screen flex items-center justify-center overflow-hidden pt-20">
       <div 
         className="absolute inset-0 bg-cover bg-center"
         style={{
@@ -23,9 +23,12 @@ const Hero = () => {
           <Button 
             size="lg" 
             className="bg-accent hover:bg-accent/90 text-accent-foreground font-medium px-8 py-6 text-lg transition-all hover:scale-105"
+            asChild
           >
-            Explore Collections
-            <ArrowRight className="ml-2 h-5 w-5" />
+            <a href="#collections">
+              Explore Collections
+              <ArrowRight className="ml-2 h-5 w-5" />
+            </a>
           </Button>
         </div>
       </div>
