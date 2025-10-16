@@ -4,6 +4,12 @@ import Collections from "@/components/Collections";
 import CinematicRunway from "@/components/CinematicRunway";
 import FabricInteraction from "@/components/FabricInteraction";
 import FashionDNA from "@/components/FashionDNA";
+import FashionDNAQuiz from "@/components/FashionDNAQuiz";
+import AIStyleAssistant from "@/components/AIStyleAssistant";
+import VirtualMirror from "@/components/VirtualMirror";
+import TimeCapsuleWardrobe from "@/components/TimeCapsuleWardrobe";
+import DesignerConnect from "@/components/DesignerConnect";
+import AIRunwayMode from "@/components/AIRunwayMode";
 import PremiumMembership from "@/components/PremiumMembership";
 import SustainabilityTracker from "@/components/SustainabilityTracker";
 import About from "@/components/About";
@@ -17,8 +23,14 @@ const Index = () => {
       <Hero />
       <Collections />
       <CinematicRunway />
+      <AIStyleAssistant />
+      <VirtualMirror />
       <FabricInteraction />
       <FashionDNA />
+      <FashionDNAQuiz />
+      <TimeCapsuleWardrobe />
+      <AIRunwayMode />
+      <DesignerConnect />
       <PremiumMembership />
       <SustainabilityTracker />
       <About />
