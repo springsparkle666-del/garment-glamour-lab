@@ -1,45 +1,149 @@
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Check, Crown, Sparkles } from "lucide-react";
+import { Check, Crown, Sparkles, Loader2 } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
+import { useSubscription } from "@/hooks/useSubscription";
+import { useToast } from "@/hooks/use-toast";
+import { useNavigate } from "react-router-dom";
 
-const tiers = [
-  {
-    name: "ÉLITE Access",
-    price: "₹2,999",
-    period: "/year",
-    icon: Sparkles,
-    features: [
-      "Early access to new collections",
-      "Exclusive designer previews",
-      "Limited-edition pieces",
-      "Behind-the-scenes content",
-      "Monthly style newsletter",
-      "Members-only digital events",
-    ],
-    gradient: "from-accent/20 to-accent/5",
-    borderColor: "border-accent/30",
-  },
-  {
-    name: "Luxe Gold",
-    price: "₹5,999",
-    period: "/year",
-    icon: Crown,
-    featured: true,
-    features: [
-      "Everything in ÉLITE Access",
-      "Personal stylist consultation",
-      "Virtual wardrobe curation",
-      "Priority access to couture pieces",
-      "Complimentary styling sessions",
-      "Exclusive private event invitations",
-      "Free premium shipping",
-      "Dedicated concierge service",
-    ],
-    gradient: "from-accent/30 to-accent/10",
-    borderColor: "border-accent",
-  },
-];
+interface Tier {
+  id: string;
+  name: string;
+  price: number;
+  stripe_price_id: string | null;
+  features: string[];
+}
 
 const PremiumMembership = () => {
+  const [tiers, setTiers] = useState<Tier[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [checkoutLoading, setCheckoutLoading] = useState<string | null>(null);
+  const { user } = useAuth();
+  const { subscription, refreshSubscription } = useSubscription();
+  const { toast } = useToast();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    loadTiers();
+  }, []);
+
+  const loadTiers = async () => {
+    try {
+      const { data, error } = await supabase
+        .from("subscription_tiers")
+        .select("*")
+        .order("price", { ascending: true });
+
+      if (error) throw error;
+      
+      const parsedTiers = (data || []).map(tier => ({
+        ...tier,
+        features: (tier.features as unknown as string[]) || [],
+      }));
+      
+      setTiers(parsedTiers);
+    } catch (error: any) {
+      toast({
+        title: "Error loading tiers",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleCheckout = async (priceId: string, tierId: string) => {
+    if (!user) {
+      toast({
+        title: "Authentication required",
+        description: "Please sign in to subscribe",
+      });
+      navigate("/auth");
+      return;
+    }
+
+    if (!priceId) {
+      toast({
+        title: "Configuration error",
+        description: "Stripe is not configured for this tier yet",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setCheckoutLoading(tierId);
+
+    try {
+      const { data, error } = await supabase.functions.invoke("create-checkout", {
+        body: { priceId },
+      });
+
+      if (error) throw error;
+
+      if (data?.url) {
+        window.open(data.url, "_blank");
+        // Refresh subscription after a delay
+        setTimeout(() => {
+          refreshSubscription();
+        }, 5000);
+      }
+    } catch (error: any) {
+      toast({
+        title: "Checkout error",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setCheckoutLoading(null);
+    }
+  };
+
+  const handleManageSubscription = async () => {
+    try {
+      const { data, error } = await supabase.functions.invoke("customer-portal");
+
+      if (error) throw error;
+
+      if (data?.url) {
+        window.open(data.url, "_blank");
+      }
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  };
+
+  const getTierIcon = (tierName: string) => {
+    if (tierName.includes("Gold") || tierName.includes("Diamond")) {
+      return Crown;
+    }
+    return Sparkles;
+  };
+
+  const getTierGradient = (index: number) => {
+    const gradients = [
+      "from-accent/20 to-accent/5",
+      "from-accent/30 to-accent/10",
+      "from-accent/40 to-accent/15",
+    ];
+    return gradients[index % gradients.length];
+  };
+
+  if (loading) {
+    return (
+      <section id="premium" className="py-24 bg-muted/30">
+        <div className="container mx-auto px-4 text-center">
+          <Loader2 className="w-8 h-8 animate-spin mx-auto" />
+        </div>
+      </section>
+    );
+  }
+
   return (
     <section id="premium" className="py-24 bg-muted/30">
       <div className="container mx-auto px-4">
@@ -50,18 +154,35 @@ const PremiumMembership = () => {
           <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
             Unlock exclusive access to luxury fashion experiences and personalized styling
           </p>
+          {subscription.subscribed && (
+            <div className="mt-4">
+              <Button
+                variant="outline"
+                onClick={handleManageSubscription}
+              >
+                Manage Subscription
+              </Button>
+            </div>
+          )}
         </div>
 
-        <div className="grid md:grid-cols-2 gap-8 max-w-5xl mx-auto">
+        <div className={`grid gap-8 max-w-5xl mx-auto ${
+          tiers.length === 2 ? "md:grid-cols-2" : "md:grid-cols-3"
+        }`}>
           {tiers.map((tier, index) => {
-            const IconComponent = tier.icon;
+            const IconComponent = getTierIcon(tier.name);
+            const isFeatured = index === 1;
+            const isActive = subscription.subscribed; // Could compare with current tier
+
             return (
               <div
-                key={tier.name}
-                className={`relative overflow-hidden rounded-lg border-2 ${tier.borderColor} bg-gradient-to-br ${tier.gradient} backdrop-blur-sm p-8 transition-all duration-500 hover:scale-[1.02] hover:shadow-2xl animate-slide-up group`}
+                key={tier.id}
+                className={`relative overflow-hidden rounded-lg border-2 ${
+                  isFeatured ? "border-accent" : "border-accent/30"
+                } bg-gradient-to-br ${getTierGradient(index)} backdrop-blur-sm p-8 transition-all duration-500 hover:scale-[1.02] hover:shadow-2xl animate-slide-up group`}
                 style={{ animationDelay: `${index * 0.2}s` }}
               >
-                {tier.featured && (
+                {isFeatured && (
                   <div className="absolute top-4 right-4 bg-accent text-accent-foreground px-3 py-1 rounded-full text-xs font-semibold">
                     MOST POPULAR
                   </div>
@@ -79,9 +200,9 @@ const PremiumMembership = () => {
                 <div className="mb-6">
                   <div className="flex items-baseline gap-1">
                     <span className="text-4xl md:text-5xl font-bold text-foreground">
-                      {tier.price}
+                      ₹{tier.price.toLocaleString()}
                     </span>
-                    <span className="text-muted-foreground">{tier.period}</span>
+                    <span className="text-muted-foreground">/year</span>
                   </div>
                 </div>
 
@@ -99,12 +220,23 @@ const PremiumMembership = () => {
                 <Button
                   size="lg"
                   className={`w-full transition-all duration-300 ${
-                    tier.featured
+                    isFeatured
                       ? "bg-accent hover:bg-accent/90 text-accent-foreground"
                       : "bg-primary hover:bg-primary/90 text-primary-foreground"
                   }`}
+                  onClick={() => handleCheckout(tier.stripe_price_id || "", tier.id)}
+                  disabled={checkoutLoading === tier.id || !tier.stripe_price_id}
                 >
-                  {tier.featured ? "Upgrade to Gold" : "Join Now"}
+                  {checkoutLoading === tier.id ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Processing...
+                    </>
+                  ) : isActive ? (
+                    "Current Plan"
+                  ) : (
+                    "Subscribe Now"
+                  )}
                 </Button>
               </div>
             );

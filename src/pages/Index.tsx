@@ -11,6 +11,7 @@ import TimeCapsuleWardrobe from "@/components/TimeCapsuleWardrobe";
 import DesignerConnect from "@/components/DesignerConnect";
 import AIRunwayMode from "@/components/AIRunwayMode";
 import PremiumMembership from "@/components/PremiumMembership";
+import DigitalCloset from "@/components/DigitalCloset";
 import SustainabilityTracker from "@/components/SustainabilityTracker";
 import About from "@/components/About";
 import Contact from "@/components/Contact";
@@ -30,6 +31,7 @@ const Index = () => {
       <FashionDNAQuiz />
       <TimeCapsuleWardrobe />
       <AIRunwayMode />
+      <DigitalCloset />
       <DesignerConnect />
       <PremiumMembership />
       <SustainabilityTracker />
