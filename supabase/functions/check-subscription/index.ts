@@ -59,7 +59,7 @@ serve(async (req) => {
       const priceId = subscription.items.data[0].price.id;
       
       // Map price IDs to tiers
-      const tierMap = {
+      const tierMap: Record<string, string> = {
         // Will be populated with actual Stripe price IDs
       };
       tier = tierMap[priceId] || "unknown";

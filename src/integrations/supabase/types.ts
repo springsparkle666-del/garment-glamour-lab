@@ -77,6 +77,68 @@ export type Database = {
         }
         Relationships: []
       }
+      mood_history: {
+        Row: {
+          created_at: string | null
+          id: string
+          intensity: number | null
+          mood: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          intensity?: number | null
+          mood: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          intensity?: number | null
+          mood?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      outfit_films: {
+        Row: {
+          created_at: string | null
+          film_url: string
+          id: string
+          outfit_id: string | null
+          product_id: string | null
+          theme: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          film_url: string
+          id?: string
+          outfit_id?: string | null
+          product_id?: string | null
+          theme: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          film_url?: string
+          id?: string
+          outfit_id?: string | null
+          product_id?: string | null
+          theme?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "outfit_films_outfit_id_fkey"
+            columns: ["outfit_id"]
+            isOneToOne: false
+            referencedRelation: "outfits"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       outfit_items: {
         Row: {
           closet_item_id: string
@@ -227,6 +289,36 @@ export type Database = {
         }
         Relationships: []
       }
+      user_achievements: {
+        Row: {
+          achievement_name: string
+          achievement_type: string
+          description: string | null
+          earned_at: string | null
+          icon: string | null
+          id: string
+          user_id: string
+        }
+        Insert: {
+          achievement_name: string
+          achievement_type: string
+          description?: string | null
+          earned_at?: string | null
+          icon?: string | null
+          id?: string
+          user_id: string
+        }
+        Update: {
+          achievement_name?: string
+          achievement_type?: string
+          description?: string | null
+          earned_at?: string | null
+          icon?: string | null
+          id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string
@@ -294,6 +386,33 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      wardrobe_suggestions: {
+        Row: {
+          created_at: string | null
+          id: string
+          occasion: string
+          suggested_items: Json
+          user_id: string
+          weather: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          occasion: string
+          suggested_items: Json
+          user_id: string
+          weather?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          occasion?: string
+          suggested_items?: Json
+          user_id?: string
+          weather?: string | null
+        }
+        Relationships: []
       }
     }
     Views: {
